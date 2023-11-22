@@ -5,7 +5,6 @@ import os
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import argparse
-
 def main():
     """ Main function of the script 
         It has the following steps:

@@ -1,0 +1,20 @@
+# Execute as: az ml component create --file .\labo3\components\dataprep\dataprep.yaml
+version: 0.1.0
+name: data_prep_text_preprocessing
+type: command
+display_name: Data preparation, Text preprocessing
+description: Reads a csv file and preprocesses them by removing unnecessary colums, duplicates, stopwords, punctuation, and lemmatizing the text.
+inputs:
+  data:
+    type: uri_file
+    optional: False
+outputs:
+  output_data:
+    type: uri_file
+# code: azureml:/subscriptions/9dfa7b7b-77cd-4d7c-bcab-e0756bdf40a9/resourceGroups/mlops-labo3-tibe/providers/Microsoft.MachineLearningServices/workspaces/mlops/codes/c8cda70a-1947-4e61-a233-cb929c90f0f2/versions/1
+environment: azureml:aml-Prepro:0.1.0
+code: ./code
+# environment: azureml:/subscriptions/9dfa7b7b-77cd-4d7c-bcab-e0756bdf40a9/resourceGroups/mlops-labo3-tibe/providers/Microsoft.MachineLearningServices/workspaces/mlops/environments/aml-Tensorflow-Pillow/versions/2
+resources:
+  instance_count: 1
+command: 'python dataprep.py --data ${{inputs.data}} --output_data ${{outputs.output_data}}'

@@ -1,0 +1,11 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: aml-Prepro
+description: Custom environment for preprocessing text data
+version: 0.1.0
+
+conda_file: ../components/dataprep/environments/preproConda.yaml
+image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+# os_type: linux
+
+# tags:
+#   nltk: 0.1.0

@@ -13,22 +13,32 @@ def main():
             2. Drop the tweet_id column
             3. Drop the duplicated rows
             4. Normalize the text
+            5. Save the preprocessed data
         It has the following arguments:
-            None    
+            --data: Path to the dataset
+            --output_path: Path to the output data
+            --language: Language of the dataset
     """
+    # set the default values
     defaultData = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'dataset', 'emotions.csv')
     defaultOutput = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'dataset', 'emotions-prepro.csv')
+    defaultLang = 'english'
+
+    # get the arguments
     parser = argparse.ArgumentParser(description='Preprocess the dataset')
     parser.add_argument('--data', type=str, default=defaultData, help='Path to the dataset')
     parser.add_argument('--output_path', type=str, default=defaultOutput, help='Path to the output data')
+    parser.add_argument('--language', type=str, default=defaultLang, help='Language of the dataset')
     args = parser.parse_args()
 
     output_path = args.output_path
     data = args.data
+    language = args.language
 
+    # download the required packages
     nltk.download('stopwords')
     nltk.download('wordnet')
-    stop_words = set(stopwords.words("english"))
+    stop_words = set(stopwords.words(language))
     def lemmatization(text):
         lemmatizer= WordNetLemmatizer()
 
@@ -78,14 +88,21 @@ def main():
         df.content=df.content.apply(lambda text : lemmatization(text))
         return df
 
+    # read the dataset
     df = pd.read_csv(data)
 
     # drop the tweet_id column
     df.drop('tweet_id', axis=1, inplace=True)
+
+    # drop the duplicated rows
     index = df[df['content'].duplicated() == True].index
     df.drop(index, axis = 0, inplace = True)
     df.reset_index(inplace=True, drop = True)
+
+    # normalize the text
     df = normalize_text(df)
+    
+    # save the preprocessed data
     df.to_csv(output_path, index=False)
 
 if __name__ == '__main__':

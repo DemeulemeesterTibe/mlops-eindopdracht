@@ -1,4 +1,4 @@
-# Execute as: az ml component create --file .\labo3\components\dataprep\dataprep.yaml
+# Execute as: az ml component create --file .\components\dataprep\prepro.yaml
 version: 0.1.0
 name: data_prep_text_preprocessing
 type: command

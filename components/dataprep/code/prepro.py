@@ -4,6 +4,7 @@ import re
 import os
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from sklearn.preprocessing import LabelEncoder
 import argparse
 def main():
     """ Main function of the script 
@@ -102,6 +103,10 @@ def main():
 
     # normalize the text
     df = normalize_text(df)
+
+    # encode the labels
+    encoder = LabelEncoder()
+    df['sentiment'] = encoder.fit_transform(df['sentiment'])
     
     # save the preprocessed data
     print("Saving the preprocessed csv file")

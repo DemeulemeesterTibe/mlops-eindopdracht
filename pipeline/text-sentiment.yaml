@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 
 type: pipeline
-name: Text-Sentiment-test12
+name: Text-Sentiment-test14
 display_name: Text Sentiment
 experiment_name: Classifying text sentiment
 
@@ -28,15 +28,15 @@ jobs:
       output_data:
         mode: rw_mount
     
-    train_test_split:
-      type: command
-      component: ../components/dataprep/traintest.yaml
-      inputs:
-        data: ${{parent.jobs.prepro.outputs.output_data}}
-        data_name: ${{parent.inputs.data_name}}
-        train_test_split: ${{parent.inputs.train_test_split}}
-      outputs:
-        training_data_output:
-          mode: rw_mount
-        testing_data_output:
-          mode: rw_mount
+  train_test_split:
+    type: command
+    component: ../components/dataprep/traintest.yaml
+    inputs:
+      data: ${{parent.jobs.prepro.outputs.output_data}}
+      data_name: ${{parent.inputs.data_name}}
+      train_test_split: ${{parent.inputs.train_test_split}}
+    outputs:
+      training_data_output:
+        mode: rw_mount
+      testing_data_output:
+        mode: rw_mount

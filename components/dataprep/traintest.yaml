@@ -19,12 +19,11 @@ outputs:
     type: uri_folder
   testing_data_output:
     type: uri_folder
-# environment: azureml:aml-DataSplit:0.1.0
-environment: ../../environments/traintestEnv.yaml
+environment: azureml:aml-DataSplit:0.1.0
 code: ./code
 resources:
   instance_count: 1
 command: "python traintest.py --data ${{inputs.data}} --data_name ${{inputs.data_name}} \
    --training_data_output ${{outputs.training_data_output}} --testing_data_output ${{outputs.testing_data_output}}  \
-   --train_test_split ${{inputs.train_test_split}} \
+   --split_size ${{inputs.train_test_split}} \
   "

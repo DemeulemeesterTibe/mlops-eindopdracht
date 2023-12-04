@@ -25,13 +25,13 @@ def main():
 
     # get the arguments
     parser = argparse.ArgumentParser(description='Preprocess the dataset')
-    parser.add_argument('--data', type=str, default=defaultData, help='Path to the dataset')
+    parser.add_argument('--data', type=str, default=defaultData, help='Path to the dataset folder')
+    parser.add_argument('--data_name', type=str, default=defaultData, help='Name of the dataset')
     parser.add_argument('--output_path', type=str, default=defaultOutput, help='Path to the output data')
     parser.add_argument('--language', type=str, default=defaultLang, help='Language of the dataset')
     args = parser.parse_args()
 
-    output_path = args.output_path
-    data = args.data
+    data_name = args.data_name
     language = args.language
 
     # download the required packages
@@ -88,7 +88,9 @@ def main():
         return df
 
     # read the dataset
-    df = pd.read_csv(data)
+    print("Reading the dataset")
+    
+    df = pd.read_csv(os.path.join(args.data, data_name+'.csv'))
 
     # drop the tweet_id column
     df.drop('tweet_id', axis=1, inplace=True)
@@ -102,7 +104,8 @@ def main():
     df = normalize_text(df)
     
     # save the preprocessed data
-    df.to_csv(output_path, index=False)
+    print("Saving the preprocessed csv file")
+    df.to_csv(os.path.join(args.output_path, data_name+'-prepro.csv'), index=False)
 
 if __name__ == '__main__':
     main()

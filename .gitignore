@@ -1,1 +1,5 @@
 dataset/emotions-prepro.csv
+dataset/*.pkl
+dataset/emotions-test.csv
+dataset/emotions-train.csv
+dataset/*.txt

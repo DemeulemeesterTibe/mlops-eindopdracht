@@ -6,13 +6,21 @@ display_name: Data preparation, Text preprocessing
 description: Reads a csv file and preprocesses them by removing unnecessary colums, duplicates, stopwords, punctuation, and lemmatizing the text.
 inputs:
   data:
-    type: uri_file
+    type: uri_folder
+    optional: False
+  language:
+    type: string
+    optional: False
+  data_name:
+    type: string
     optional: False
 outputs:
   output_data:
-    type: uri_file
+    type: uri_folder
 environment: azureml:aml-Prepro:0.1.0
 code: ./code
 resources:
   instance_count: 1
-command: 'python prepro.py --data ${{inputs.data}} --output_data ${{outputs.output_data}}'
+command: "python prepro.py --data ${{inputs.data}} --output_path ${{outputs.output_data}} \
+  --language ${{inputs.language}} --data_name ${{inputs.data_name}} \
+  "

@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 
 type: pipeline
-name: Text-Sentiment-test14
+name: Text-Sentiment-test17
 display_name: Text Sentiment
 experiment_name: Classifying text sentiment
 
@@ -9,6 +9,9 @@ inputs:
   language: "english"
   train_test_split: 20
   data_name: "emotions"
+  data_folder: 
+    type: uri_folder
+    path: azureml:DataFolder:1
 
 settings:
   default_compute: azureml:mlopsc-cli
@@ -18,9 +21,7 @@ jobs:
     type: command
     component: ../components/dataprep/prepro.yaml
     inputs:
-      data: 
-        type: uri_folder
-        path: azureml:emotionsTest:1
+      data_folder: ${{parent.inputs.data_folder}}
       language: ${{parent.inputs.language}}
       data_name: ${{parent.inputs.data_name}}
 
@@ -32,7 +33,7 @@ jobs:
     type: command
     component: ../components/dataprep/traintest.yaml
     inputs:
-      data: ${{parent.jobs.prepro.outputs.output_data}}
+      data_folder: ${{parent.jobs.prepro.outputs.output_data}}
       data_name: ${{parent.inputs.data_name}}
       train_test_split: ${{parent.inputs.train_test_split}}
     outputs:

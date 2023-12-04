@@ -105,8 +105,8 @@ def main():
     df = normalize_text(df)
 
     # encode the labels
-    encoder = LabelEncoder()
-    df['sentiment'] = encoder.fit_transform(df['sentiment'])
+    # encoder = LabelEncoder()
+    # df['sentiment'] = encoder.fit_transform(df['sentiment'])
     
     # save the preprocessed data
     print("Saving the preprocessed csv file")

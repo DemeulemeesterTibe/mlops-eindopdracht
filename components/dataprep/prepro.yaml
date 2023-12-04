@@ -17,7 +17,7 @@ outputs:
   output_data:
     type: uri_folder
 environment: azureml:aml-Prepro:0.1.1
-code: ./code
+code: ./code/prepro.py
 resources:
   instance_count: 1
 command: "python prepro.py --data ${{inputs.data_folder}} --output_path ${{outputs.output_data}} \

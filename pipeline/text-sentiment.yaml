@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 
 type: pipeline
-name: Text-Sentiment-test17
+name: Text-Sentiment-test36
 display_name: Text Sentiment
 experiment_name: Classifying text sentiment
 
@@ -9,9 +9,14 @@ inputs:
   language: "english"
   train_test_split: 20
   data_name: "emotions"
+  glove: "glove.6B.200d.txt"
   data_folder: 
     type: uri_folder
     path: azureml:DataFolder:1
+  epochs: 10
+  batchsize: 126
+  valsplit: 20
+  patience: 5
 
 settings:
   default_compute: azureml:mlopsc-cli
@@ -41,3 +46,30 @@ jobs:
         mode: rw_mount
       testing_data_output:
         mode: rw_mount
+  
+  training:
+    type: command
+    component: ../components/training/train.yaml
+    inputs:
+      training_data: ${{parent.jobs.train_test_split.outputs.training_data_output}}
+      testing_data: ${{parent.jobs.train_test_split.outputs.testing_data_output}}
+      data_name: ${{parent.inputs.data_name}}
+      epochs: ${{parent.inputs.epochs}}
+      batchsize: ${{parent.inputs.batchsize}}
+      valsplit: ${{parent.inputs.valsplit}}
+      patience: ${{parent.inputs.patience}}
+      glove: ${{parent.inputs.glove}}
+      data_folder: ${{parent.inputs.data_folder}}
+    outputs:
+      output_folder:
+        mode: rw_mount
+  
+  register:
+    type: command
+    component: azureml://registries/azureml/components/register_model/versions/0.0.9
+    inputs: 
+      model_name: ${{parent.inputs.data_name}}+classification
+      model_type: custom_model
+      model_path: ${{parent.jobs.training.outputs.output_folder}}
+    outputs:
+      registration_details_folder: ${{parent.outputs.model}}

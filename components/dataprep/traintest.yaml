@@ -19,7 +19,7 @@ outputs:
   testing_data_output:
     type: uri_folder
 environment: azureml:aml-DataSplit:0.1.0
-code: ./code
+code: ./code/traintest.py
 resources:
   instance_count: 1
 command: "python traintest.py --data ${{inputs.data_folder}} --data_name ${{inputs.data_name}} \

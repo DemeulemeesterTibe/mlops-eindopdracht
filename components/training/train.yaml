@@ -1,0 +1,45 @@
+version: 0.1.0
+name: training_model
+type: command
+display_name: Training an AI model for text sentiment
+description: Trains an AI model for text sentiment
+inputs:
+  training_data:
+    type: uri_folder
+    optional: False
+  testing_data:
+    type: uri_folder
+    optional: False
+  data_folder:
+    type: uri_folder
+    optional: False
+  data_name:
+    type: string
+    optional: False
+  glove:
+    type: string
+    optional: False
+  epochs:
+    type: number
+    optional: False
+  batchsize:
+    type: number
+    optional: False
+  valsplit:
+    type: number
+    optional: False
+  patience:
+    type: number
+    optional: False
+outputs:
+  output_folder:
+    type: uri_folder
+environment: azureml:aml-Training:0.1.9
+code: ./code
+resources:
+  instance_count: 1
+command: "python train.py --training_data ${{inputs.training_data}} --testing_data ${{inputs.testing_data}} \
+   --data_name ${{inputs.data_name}} --epochs ${{inputs.epochs}} --batchsize ${{inputs.batchsize}} \
+   --valsplit ${{inputs.valsplit}} --patience ${{inputs.patience}}  \
+   --glove ${{inputs.glove}} --data_folder ${{inputs.data_folder}} --output_folder ${{outputs.output_folder}} \
+  "

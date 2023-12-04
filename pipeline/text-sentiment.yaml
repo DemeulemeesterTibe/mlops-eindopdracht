@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 
 type: pipeline
-name: Text-Sentiment-test36
+name: Text-Sentiment-test37
 display_name: Text Sentiment
 experiment_name: Classifying text sentiment
 
@@ -17,6 +17,10 @@ inputs:
   batchsize: 126
   valsplit: 20
   patience: 5
+
+outputs:
+  model:
+    type: uri_folder
 
 settings:
   default_compute: azureml:mlopsc-cli

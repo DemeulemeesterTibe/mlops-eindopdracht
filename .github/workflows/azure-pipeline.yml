@@ -1,0 +1,13 @@
+name: MLOPS Azure text sentiment classification pipeline 
+
+on: 
+  workflow_dispatch:
+
+env:
+  GROUP: mlops-eindopdracht
+  WORKSPACE: eindopdracht
+  LOCATION: westeurope
+
+jobs:
+  azure-pipeline:
+  runs-on: ubuntu-latest

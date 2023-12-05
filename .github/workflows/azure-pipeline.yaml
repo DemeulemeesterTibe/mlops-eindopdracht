@@ -1,0 +1,78 @@
+name: MLOPS Azure text sentiment classification pipeline 
+
+on: 
+  workflow_dispatch:
+    inputs:
+      create_compute:
+        description: 'Create compute instance'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  GROUP: mlops-eindopdracht
+  WORKSPACE: eindopdracht
+  LOCATION: westeurope
+
+jobs:
+  azure-pipeline:
+    runs-on: ubuntu-latest
+    outputs:
+      ai-model: ${{ steps.azure-pipeline.outputs.latest_version }}
+    steps:
+      - name: 'Checkout out repository'
+        uses: actions/checkout@v4
+
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Create compute instance'
+        uses: azure/CLI@v1
+        id: azure-create-compute
+        if: ${{ inputs.create_compute }}
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml compute create -f ./environment/compute.yaml
+      
+      - name: 'Start compute instance'
+        uses: azure/CLI@v1
+        if: ${{ steps.azure-create-compute.outcome == 'skipped' }}
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml compute start -n mlops-cli
+        continue-on-error: true
+
+      - name: 'Run the azure ml pipeline'
+        uses: azure/CLI@v1
+        id: azure-pipeline
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml job create --file ./pipelines/text-sentiment.yaml --set name=emotions-classification-${{ github.sha }}-${{ github.run_id }} --stream
+            echo "Pipeline is done running"
+            VERSION=$(az ml model list -n emotions-classification --query '[0].version')
+            echo "Latest version of model is $VERSION"
+            echo "::set-output name=latest_version::$VERSION"
+        
+      - name: 'Stop compute instance'
+        uses: azure/CLI@v1
+        id: azure-stop-compute
+        if: always()
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            az ml compute stop -n mlops-cli
+        continue-on-error: true
+            

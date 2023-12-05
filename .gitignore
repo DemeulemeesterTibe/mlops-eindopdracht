@@ -4,3 +4,4 @@ dataset/emotions-test.csv
 dataset/emotions-train.csv
 dataset/*.txt
 model/
+secrets.env

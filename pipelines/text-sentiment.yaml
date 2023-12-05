@@ -23,7 +23,7 @@ outputs:
     type: uri_folder
 
 settings:
-  default_compute: azureml:mlopsc-cli
+  default_compute: azureml:mlops-cli
 
 jobs:
   prepro:

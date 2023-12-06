@@ -63,7 +63,7 @@ jobs:
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             echo "${{ steps.read_compute_name.outputs.COMPUTE_NAME }}"
-            az ml compute start -n ${{ steps.read_compute_name.outputs.COMPUTE_NAME }}}
+            az ml compute start -n ${{ steps.read_compute_name.outputs.COMPUTE_NAME }}
         continue-on-error: true
 
       - name: 'Run the azure ml pipeline'

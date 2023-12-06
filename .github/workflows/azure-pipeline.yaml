@@ -7,12 +7,12 @@ on:
         description: 'Create compute instance'
         required: true
         type: boolean
-        default: true
-      epochs:
-        description: 'Number of epochs to train the model'
-        required: true
-        type: number
-        default: 10
+        default: false
+      # epochs:
+      #   description: 'Number of epochs to train the model'
+      #   required: true
+      #   type: number
+      #   default: 10
 
 env:
   GROUP: mlops-eindopdracht
@@ -33,9 +33,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       
-      - name: Read name of compute instance
-        id: compute-name
-        run: echo "CI_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
+      - name: Read compute name
+        id: read_compute_name
+        run: echo "COMPUTE_NAME=$(yq ".name" ./compute_instances/compute.yaml)" >> "$GITHUB_OUTPUT"
+
 
       - name: 'Create compute instance'
         uses: azure/CLI@v1
@@ -56,7 +57,8 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            az ml compute start -n ${{ steps.compute-name.outputs.CI_NAME }}}
+            echo "${{ steps.read_compute_name.outputs.COMPUTE_NAME }}"
+            az ml compute start -n ${{ steps.read_compute_name.outputs.COMPUTE_NAME }}}
         continue-on-error: true
 
       - name: 'Run the azure ml pipeline'

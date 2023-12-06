@@ -74,6 +74,6 @@ def preprocess(sentence: str):
     sentence = lemmatization(sentence)
 
     sentence = tokenizer.texts_to_sequences([sentence])
-    sentence = pad_sequences(sentence, maxlen=136, padding='post')
+    sentence = pad_sequences(sentence, maxlen=36, padding='post')
 
     return sentence

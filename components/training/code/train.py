@@ -2,6 +2,8 @@ import os
 import argparse
 import pandas as pd
 import numpy as np
+import pickle
+
 
 from sklearn.metrics import classification_report, confusion_matrix
 
@@ -134,7 +136,9 @@ def main():
     np.save(os.path.join(model_path, data_name+'-class-report.npy'), class_report)
     # save the labels as a numpy array
     np.save(os.path.join(model_path, data_name+'-labels.npy'), labels)
-
+    # save the tokenizer
+    with open(os.path.join(model_path, data_name+'-tokenizer.pickle'), 'wb') as handle:
+        pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":

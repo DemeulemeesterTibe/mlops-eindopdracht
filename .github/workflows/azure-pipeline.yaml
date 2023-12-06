@@ -81,3 +81,33 @@ jobs:
             az ml compute stop -n mlops-cli
         continue-on-error: true
             
+  download-model:
+    runs-on: ubuntu-latest
+    needs: azure-pipeline
+    if: ${{ needs.azure-pipeline.result == 'success' }} || ${{ needs.azure-pipeline.result == 'skipped' }}
+    steps:
+      - name: 'Checkout out repository'
+        uses: actions/checkout@v4
+
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: 'Download model'
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            VERSION=$( VERSION=$(az ml model list -n animals-classification --query '[0].version' -o tsv) )
+            echo "Latest version of model is $VERSION"
+            echo "::set-output name=latest_version::$VERSION"
+            az ml model download -n emotions-classification -v $VERSION -d ./inference 
+      
+      - name: Upload api code
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-config
+          path: inference

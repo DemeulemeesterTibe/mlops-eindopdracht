@@ -35,7 +35,7 @@ jobs:
       
       - name: Read compute name
         id: read_compute_name
-        run: echo "COMPUTE_NAME=$(yq ".name" ./compute_instances/compute.yaml)" >> "$GITHUB_OUTPUT"
+        run: echo "COMPUTE_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
 
 
       - name: 'Create compute instance'

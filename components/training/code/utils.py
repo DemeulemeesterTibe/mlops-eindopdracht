@@ -4,6 +4,7 @@ import numpy as np
 from keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Embedding, Bidirectional
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import SGD
 from tensorflow.keras.utils import to_categorical
 
 from sklearn.preprocessing import LabelEncoder
@@ -76,7 +77,8 @@ def buildModel(input_lenght,vocabSize,embedding_matrix, classes, lr):
     :return: The model
     """
 
-    adam = Adam(learning_rate=lr)
+    # adam = Adam(learning_rate=lr)
+    opt = SGD(learning_rate=lr)
 
     model = Sequential()
     model.add(Embedding(vocabSize, 200, input_length=input_lenght, weights=[embedding_matrix], trainable=False))
@@ -85,7 +87,7 @@ def buildModel(input_lenght,vocabSize,embedding_matrix, classes, lr):
     model.add(Bidirectional(LSTM(64, dropout=0.2,recurrent_dropout=0.2)))
     model.add(Dense(classes, activation='softmax'))
 
-    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
     return model
 

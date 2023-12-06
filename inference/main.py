@@ -14,8 +14,12 @@ app.add_middleware(
 )
 
 SENTIMENTS = []
-model_path = os.path.join("inference", "emotions")
-print(model_path)
+# inference\emotions-classification\INPUT_model_path\emotions\emotions.h5
+
+model_path = os.path.join("emotions-classification","INPUT_model_path", "emotions", "emotions")
+# print current working directory
+print("Current working directory: {0}".format(os.getcwd()))
+print("model_path",model_path)
 print("Loading model...")
 model = load_model(model_path)
 

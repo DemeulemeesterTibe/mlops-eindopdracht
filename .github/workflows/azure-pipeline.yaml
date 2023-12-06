@@ -8,6 +8,11 @@ on:
         required: true
         type: boolean
         default: true
+      epochs:
+        description: 'Number of epochs to train the model'
+        required: true
+        type: number
+        default: 10
 
 env:
   GROUP: mlops-eindopdracht

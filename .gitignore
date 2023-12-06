@@ -6,3 +6,4 @@ dataset/*.txt
 model/
 secrets.env
 inference/emotions
+inference/emotions-classification

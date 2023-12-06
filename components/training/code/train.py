@@ -90,7 +90,7 @@ def main():
     os.makedirs(model_path, exist_ok=True)
     model_name = os.path.join(model_path, data_name)
     # Creating callbacks for early stopping, reducing the learning rate and saving the best model
-    modelCheckpoint = ModelCheckpoint(filepath=model_name, 
+    modelCheckpoint = ModelCheckpoint(filepath=model_name+'.h5', 
                                       monitor='val_loss', 
                                       verbose=1, 
                                       save_best_only=True)

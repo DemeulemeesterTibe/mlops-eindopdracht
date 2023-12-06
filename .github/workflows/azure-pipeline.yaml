@@ -32,6 +32,10 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Read name of compute instance
+        id: compute-name
+        run: echo "CI_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
 
       - name: 'Create compute instance'
         uses: azure/CLI@v1
@@ -52,7 +56,7 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            az ml compute start -n mlops-cli
+            az ml compute start -n ${{ steps.compute-name.outputs.CI_NAME }}}
         continue-on-error: true
 
       - name: 'Run the azure ml pipeline'

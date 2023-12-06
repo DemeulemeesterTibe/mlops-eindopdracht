@@ -8,6 +8,11 @@ on:
         required: true
         type: boolean
         default: false
+      download model:
+        description: 'Download model'
+        required: true
+        type: boolean
+        default: true
       # epochs:
       #   description: 'Number of epochs to train the model'
       #   required: true
@@ -90,7 +95,7 @@ jobs:
   download-model:
     runs-on: ubuntu-latest
     needs: azure-pipeline
-    if: ${{ needs.azure-pipeline.result == 'success' }} || ${{ needs.azure-pipeline.result == 'skipped' }}
+    if: (${{ needs.azure-pipeline.result == 'success' }} || ${{ needs.azure-pipeline.result == 'skipped' }}) && ${{ inputs.download_model }}
     steps:
       - name: 'Checkout out repository'
         uses: actions/checkout@v4

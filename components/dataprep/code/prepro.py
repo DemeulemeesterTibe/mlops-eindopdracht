@@ -4,7 +4,6 @@ import re
 import os
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from sklearn.preprocessing import LabelEncoder
 import argparse
 def main():
     """ Main function of the script 

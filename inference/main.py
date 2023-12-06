@@ -3,6 +3,7 @@ from tensorflow.keras.models import load_model
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from utils import *
 
 app = FastAPI()
 app.add_middleware(
@@ -18,16 +19,16 @@ SENTIMENTS = []
 
 model_path = os.path.join("emotions-classification","INPUT_model_path", "emotions", "emotions.h5")
 # print current working directory
-print("Current working directory: {0}".format(os.getcwd()))
 print("model_path",model_path)
 print("Loading model...")
 model = load_model(model_path)
 
 @app.post('/get/sentiment')
 async def uploadImage(text: str):
-
-
-    predictions = model.predict()
+    print("############### text",text)
+    proccessed_text = preprocess(text)
+    print("############### proccessed_text",proccessed_text)
+    predictions = model.predict(proccessed_text)
     classifications = predictions.argmax(axis=1)
 
     return SENTIMENTS[classifications.tolist()[0]]

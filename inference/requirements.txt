@@ -1,2 +1,5 @@
 tensorflow
 fastapi[all]
+nltk
+scikit-learn
+pandas

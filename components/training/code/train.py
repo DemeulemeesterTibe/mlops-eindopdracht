@@ -132,6 +132,8 @@ def main():
     
     np.save(os.path.join(model_path, data_name+'-cf.npy'), cf_matrix)
     np.save(os.path.join(model_path, data_name+'-class-report.npy'), class_report)
+    # save the labels as a numpy array
+    np.save(os.path.join(model_path, data_name+'-labels.npy'), labels)
 
 
 

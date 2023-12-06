@@ -101,7 +101,7 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            VERSION=$( VERSION=$(az ml model list -n emotions-classification --query '[0].version' -o tsv) )
+            VERSION=$(az ml model list -n emotions-classification --query '[0].version' -o tsv)
             echo "Latest version of model is $VERSION"
             echo "::set-output name=latest_version::$VERSION"
             az ml model download -n emotions-classification -v $VERSION -d ./inference 
@@ -132,7 +132,7 @@ jobs:
   #       with:
   #         registry: ghcr.io
   #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #         password: ${{ secrets.TOKEN }}
     
   #     - name: Download API code for Docker
   #       uses: actions/download-artifact@v2

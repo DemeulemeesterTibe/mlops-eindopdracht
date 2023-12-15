@@ -38,9 +38,27 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       
-      - name: Read compute name
-        id: read_compute_name
-        run: echo "COMPUTE_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
+      - name: 'Read yaml files and set output variables'
+        # id: read_compute_name
+        id: read_yaml
+        run: | 
+          echo "COMPUTE_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
+          echo "PRE_PRO_ENV=$(yq ".name" ./environment/preproEnv.yaml)" >> "$GITHUB_OUTPUT"
+          echo "PRE_PRO_ENV_VERSION=$(yq ".version" ./environment/preproEnv.yaml)" >> "$GITHUB_OUTPUT"
+          echo "TRAINING_ENV=$(yq ".name" ./environment/trainingEnv.yaml)" >> "$GITHUB_OUTPUT"
+          echo "TRAINING_ENV_VERSION=$(yq ".version" ./environment/trainingEnv.yaml)" >> "$GITHUB_OUTPUT"
+          echo "TRAIN_TEST_ENV=$(yq ".name" ./environment/traintestEnv.yaml)" >> "$GITHUB_OUTPUT"
+          echo "TRAIN_TEST_ENVVERSION=$(yq ".version" ./environment/traintestEnv.yaml)" >> "$GITHUB_OUTPUT"
+
+      - name: 'Test output variables'
+        run: |
+          echo "${{ steps.read_yaml.outputs.COMPUTE_NAME }}"
+          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }}"
+          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }}"
+          echo "${{ steps.read_yaml.outputs.TRAINING_ENV }}"
+          echo "${{ steps.read_yaml.outputs.TRAINING_ENV_VERSION }}"
+          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENV }}"
+          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENVVERSION }}"
 
 
       - name: 'Create compute instance'
@@ -62,8 +80,8 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            echo "${{ steps.read_compute_name.outputs.COMPUTE_NAME }}"
-            az ml compute start -n ${{ steps.read_compute_name.outputs.COMPUTE_NAME }}
+            echo "${{ steps.read_yaml.outputs.COMPUTE_NAME }}"
+            az ml compute start -n ${{ steps.read_yaml.outputs.COMPUTE_NAME }}
         continue-on-error: true
 
       - name: 'Run the azure ml pipeline'

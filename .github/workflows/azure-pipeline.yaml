@@ -84,17 +84,17 @@ jobs:
     
                 az ml environment create -f ./environment/preproEnv.yaml
     
-                echo "PRE_PRO_ENV created successfully."
+                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} created successfully."
             else
                 # PRE_PRO_ENV exists, check version
-                echo "PRE_PRO_ENV exists, checking version..."
+                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} exists, checking version..."
     
                 if [[ $(az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
                   echo "Environment version is lower than required version, updating environment..."
                   az ml environment create -f ./environment/preproEnv.yaml
-                  echo "PRE_PRO_ENV updated successfully."
+                  echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} updated successfully."
                 else
-                  echo "PRE_PRO_ENV is up to date."
+                  echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} is up to date."
                 fi
             fi
 

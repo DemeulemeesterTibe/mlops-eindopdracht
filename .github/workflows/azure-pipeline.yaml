@@ -89,29 +89,14 @@ jobs:
                 # PRE_PRO_ENV exists, check version
                 echo "PRE_PRO_ENV exists, checking version..."
     
-                # Get existing environment instance details
-                result = az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}
-
-                # print result
-                echo $result
-    
-                # Extract the instance version
-                instance_version = $result.properties.vmSize
-    
-                # Check if the existing version is less than the desired version
-                if [[ $instance_version -lt $PRE_PRO_ENV_VERSION ]]; then
-                    # Existing version is less than desired version, upgrade
-                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} version is less than desired version, upgrading..."
-    
-                    az ml environment create -f ./environment/preproEnv.yaml
-    
-                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} version updated to ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} successfully."
+                if [[ $(az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") -lt $PRE_PRO_ENV_VERSION ]]; then
+                  echo "Environment version is lower than required version, updating environment..."
+                  az ml environment create -f ./environment/preproEnv.yaml
+                  echo "PRE_PRO_ENV updated successfully."
                 else
-                    # Existing version is greater than or equal to desired version, skip upgrade
-                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} version is already ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} or higher. Skipping upgrade."
+                  echo "PRE_PRO_ENV is up to date."
                 fi
             fi
-
 
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1

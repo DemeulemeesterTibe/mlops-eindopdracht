@@ -35,7 +35,7 @@ jobs:
       
       - name: 'Read yaml files and set output variables'
         # id: read_compute_name
-        id: read_yaml
+        id: read-yaml
         run: | 
           echo "COMPUTE_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
           echo "PRE_PRO_ENV=$(yq ".name" ./environment/preproEnv.yaml)" >> "$GITHUB_OUTPUT"
@@ -47,10 +47,10 @@ jobs:
 
       - name: 'Test output variables'
         run: |
-          echo "${{ steps.read_yaml.outputs.COMPUTE_NAME }}"
-          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }}:${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }}"
-          echo "${{ steps.read_yaml.outputs.TRAINING_ENV }}:${{ steps.read_yaml.outputs.TRAINING_ENV_VERSION }}"
-          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read_yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+          echo "${{ steps.read-yaml.outputs.COMPUTE_NAME }}"
+          echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
+          echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
+          echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
 
       - name: Create or start compute instance
         uses: azure/CLI@v1
@@ -60,9 +60,9 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            if [[ $(az ml compute list -o tsv | grep ${{ steps.read_yaml.outputs.COMPUTE_NAME }}) ]]; then
+            if [[ $(az ml compute list -o tsv | grep ${{ steps.read-yaml.outputs.COMPUTE_NAME }}) ]]; then
               echo "Compute instance already exists and will be started"
-              az ml compute start -n ${{ steps.read_yaml.outputs.COMPUTE_NAME }}
+              az ml compute start -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
             else
               echo "Compute instance does not exist and will be created"
               az ml compute create -f ./environment/compute.yaml
@@ -70,6 +70,7 @@ jobs:
       
       - name: Check and create environments
         uses: azure/CLI@v1
+        id: azure-create-environments
         with:
           azcliversion: 2.53.0
           inlineScript: |
@@ -78,23 +79,23 @@ jobs:
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
     
             # Check if PRE_PRO_ENV exists
-            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}) ]]; then
+            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}) ]]; then
                 # PRE_PRO_ENV does not exist, creating it
-                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} does not exist, creating it..."
+                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} does not exist, creating it..."
     
                 az ml environment create -f ./environment/preproEnv.yaml
     
-                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} created successfully."
+                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} created successfully."
             else
                 # PRE_PRO_ENV exists, check version
-                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} exists, checking version..."
+                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} exists, checking version..."
     
-                if [[ $(az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
+                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
                   echo "Environment version is lower than required version, updating environment..."
                   az ml environment create -f ./environment/preproEnv.yaml
-                  echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} updated successfully."
+                  echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} updated successfully."
                 else
-                  echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} is up to date."
+                  echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} is up to date."
                 fi
             fi
 
@@ -121,7 +122,7 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            az ml compute stop -n ${{ steps.read_yaml.outputs.COMPUTE_NAME }}
+            az ml compute stop -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
         continue-on-error: true
             
   download-model:

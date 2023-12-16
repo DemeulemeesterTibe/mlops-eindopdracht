@@ -75,28 +75,51 @@ jobs:
               echo "Compute instance does not exist and will be created"
               az ml compute create -f ./environment/compute.yaml
             fi
-      # - name: 'Create compute instance'
-      #   uses: azure/CLI@v1
-      #   id: azure-create-compute
-      #   if: ${{ inputs.create_compute }}
-      #   with:
-      #     azcliversion: 2.53.0
-      #     inlineScript: |
-      #       az extension add --name ml -y
-      #       az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-      #       az ml compute create -f ./environment/compute.yaml
       
-      # - name: 'Start compute instance'
-      #   uses: azure/CLI@v1
-      #   if: ${{ steps.azure-create-compute.outcome == 'skipped' }}
-      #   with:
-      #     azcliversion: 2.53.0
-      #     inlineScript: |
-      #       az extension add --name ml -y
-      #       az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-      #       echo "${{ steps.read_yaml.outputs.COMPUTE_NAME }}"
-      #       az ml compute start -n ${{ steps.read_yaml.outputs.COMPUTE_NAME }}
-      #   continue-on-error: true
+      - name: Check and create environments
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            echo "Checking for existing environments..."
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+    
+            # Check if PRE_PRO_ENV exists
+            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}) ]]; then
+                # PRE_PRO_ENV does not exist, creating it
+                echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} does not exist, creating it..."
+    
+                az ml environment create -f ./environment/preproEnv.yaml
+    
+                echo "PRE_PRO_ENV created successfully."
+            else
+                # PRE_PRO_ENV exists, check version
+                echo "PRE_PRO_ENV exists, checking version..."
+    
+                # Get existing environment instance details
+                result = az ml environment show -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}
+
+                # print result
+                echo $result
+    
+                # Extract the instance version
+                instance_version = $result.properties.vmSize
+    
+                # Check if the existing version is less than the desired version
+                if [[ $instance_version -lt $PRE_PRO_ENV_VERSION ]]; then
+                    # Existing version is less than desired version, upgrade
+                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} version is less than desired version, upgrading..."
+    
+                    az ml environment create -f ./environment/preproEnv.yaml
+    
+                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} version updated to ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} successfully."
+                else
+                    # Existing version is greater than or equal to desired version, skip upgrade
+                    echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }} version is already ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} or higher. Skipping upgrade."
+                fi
+            fi
+
 
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1

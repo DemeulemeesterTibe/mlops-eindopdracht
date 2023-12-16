@@ -89,7 +89,7 @@ jobs:
                 # PRE_PRO_ENV exists, check version
                 echo "PRE_PRO_ENV exists, checking version..."
     
-                if [[ $(az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != $PRE_PRO_ENV_VERSION ]]; then
+                if [[ $(az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
                   echo "Environment version is lower than required version, updating environment..."
                   az ml environment create -f ./environment/preproEnv.yaml
                   echo "PRE_PRO_ENV updated successfully."

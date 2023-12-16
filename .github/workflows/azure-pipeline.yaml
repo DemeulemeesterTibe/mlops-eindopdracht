@@ -3,11 +3,6 @@ name: MLOPS Azure text sentiment classification pipeline
 on: 
   workflow_dispatch:
     inputs:
-      create_compute:
-        description: 'Create compute instance'
-        required: true
-        type: boolean
-        default: false
       download_model:
         description: 'Download model'
         required: true
@@ -53,12 +48,9 @@ jobs:
       - name: 'Test output variables'
         run: |
           echo "${{ steps.read_yaml.outputs.COMPUTE_NAME }}"
-          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }}"
-          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }}"
-          echo "${{ steps.read_yaml.outputs.TRAINING_ENV }}"
-          echo "${{ steps.read_yaml.outputs.TRAINING_ENV_VERSION }}"
-          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENV }}"
-          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+          echo "${{ steps.read_yaml.outputs.PRE_PRO_ENV }}:${{ steps.read_yaml.outputs.PRE_PRO_ENV_VERSION }}"
+          echo "${{ steps.read_yaml.outputs.TRAINING_ENV }}:${{ steps.read_yaml.outputs.TRAINING_ENV_VERSION }}"
+          echo "${{ steps.read_yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read_yaml.outputs.TRAIN_TEST_ENVVERSION }}"
 
       - name: Create or start compute instance
         uses: azure/CLI@v1
@@ -98,7 +90,7 @@ jobs:
                 echo "PRE_PRO_ENV exists, checking version..."
     
                 # Get existing environment instance details
-                result = az ml environment show -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}
+                result = az ml environment list -n ${{ steps.read_yaml.outputs.PRE_PRO_ENV }}
 
                 # print result
                 echo $result

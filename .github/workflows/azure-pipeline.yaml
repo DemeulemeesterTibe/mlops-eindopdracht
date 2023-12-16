@@ -63,7 +63,6 @@ jobs:
       - name: Create or start compute instance
         uses: azure/CLI@v1
         id: azure-create-compute
-        if: ${{ inputs.create_compute }}
         with:
           azcliversion: 2.53.0
           inlineScript: |

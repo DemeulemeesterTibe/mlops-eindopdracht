@@ -65,7 +65,27 @@ jobs:
           echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
           echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
           echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+          
+      - name: Update the component files with latest environment version
+        id: update-component
+        run: |
+          COMPONENT_FILE_PREPRO="./components/dataprep/prepro.yaml"
+          COMPONENT_FILE_TRAINTEST="./components/dataprep/traintest.yaml"
+          COMPONENT_FILE_TRAIN="./components/training/train.yaml"
 
+          echo "Updating prepro.yaml with the latest environment: ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
+          
+          # Use a tool like sed to replace the environment field in the component.yaml file
+          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}/" $COMPONENT_FILE_PREPRO
+          echo "prepro.yaml updated successfully."
+          echo "Updating traintest.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
+          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}/" $COMPONENT_FILE_TRAIN
+          echo "traintest.yaml updated successfully."
+          echo "Updating training.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}/" $COMPONENT_FILE_TRAINTEST
+          echo "training.yaml updated successfully."
+          cat $COMPONENT_FILE_TRAINTEST
+  
       - name: Check and create environments
         uses: azure/CLI@v1
         id: azure-create-environments
@@ -96,19 +116,48 @@ jobs:
                   echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} is up to date."
                 fi
             fi
-
-      - name: Update prepro.yaml with latest environment version
-        id: update-component
-        run: |
-          COMPONENT_FILE="./components/dataprep/prepro.yaml"
-
-          echo "Updating component.yaml with the latest environment: ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
-
-          # Use a tool like sed to replace the environment field in the component.yaml file
-          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}/" $COMPONENT_FILE
-          echo "Component.yaml updated successfully."
-          cat $COMPONENT_FILE
-
+    
+            # Check if TRAINING_ENV exists
+            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAINING_ENV }}) ]]; then
+                # PRE_PRO_ENV does not exist, creating it
+                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} does not exist, creating it..."
+    
+                az ml environment create -f ./environment/trainingEnv.yaml
+    
+                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} created successfully."
+            else
+                # PRE_PRO_ENV exists, check version
+                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} exists, checking version..."
+    
+                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAINING_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }} ]]; then
+                  echo "Environment version is lower than required version, updating environment..."
+                  az ml environment create -f ./environment/trainingEnv.yaml
+                  echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} updated successfully."
+                else
+                  echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} is up to date."
+                fi
+            fi
+    
+            # Check if TRAIN_TEST_ENV exists
+            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}) ]]; then
+                # PRE_PRO_ENV does not exist, creating it
+                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} does not exist, creating it..."
+    
+                az ml environment create -f ./environment/traintestEnv.yaml
+    
+                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} created successfully."
+            else
+                # PRE_PRO_ENV exists, check version
+                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} exists, checking version..."
+    
+                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }} ]]; then
+                  echo "Environment version is lower than required version, updating environment..."
+                  az ml environment create -f ./environment/traintestEnv.yaml
+                  echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} updated successfully."
+                else
+                  echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} is up to date."
+                fi
+            fi
 
       - name: Create or start compute instance
         uses: azure/CLI@v1

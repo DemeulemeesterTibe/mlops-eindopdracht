@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
-name: aml-Training
+name: aml-Training-Text
 description: Custom environment for training text data 
-version: 0.1.9
+version: 0.1.0
 
 conda_file: ../components/training/environments/trainConda.yaml
 image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest

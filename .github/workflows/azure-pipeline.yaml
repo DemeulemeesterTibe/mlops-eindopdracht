@@ -224,7 +224,8 @@ jobs:
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             VERSION=$(az ml model list -n emotions-classification --query '[0].version' -o tsv)
             echo "Latest version of model is $VERSION"
-            echo "::set-output name=latest_version::$VERSION"
+            # echo "::set-output name=latest_version::$VERSION"
+            echo "latest_version=$VERSION" >> "$GITHUB_OUTPUT"
             az ml model download --name emotions-classification --version $VERSION --download-path ./inference 
       
       - name: Upload api code
@@ -241,7 +242,7 @@ jobs:
 
       - name: 'Docker metadata'
         id: docker-metadata
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: ghcr.io/demeulemeestertibe/mlops-eindopdracht-2.0
           tags: |
@@ -249,7 +250,7 @@ jobs:
             type=sha
       
       - name: Login to GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -263,7 +264,7 @@ jobs:
 
       - name: Docker Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v5
         with:
           context: ./inference
           push: true

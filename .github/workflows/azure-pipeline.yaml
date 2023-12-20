@@ -8,11 +8,26 @@ on:
         required: true
         type: boolean
         default: true
-      # epochs:
-      #   description: 'Number of epochs to train the model'
-      #   required: true
-      #   type: number
-      #   default: 10
+      epochs:
+        description: 'Number of epochs to train the model'
+        required: true
+        type: number
+        default: 10
+      batch_size:
+        description: 'Batch size for training'
+        required: true
+        type: number
+        default: 126
+      valsplit:
+        description: 'Validation split for training'
+        required: true
+        type: number
+        default: 20
+      patience:
+        description: 'Patience for early stopping'
+        required: true
+        type: number
+        default: 5
 
 env:
   GROUP: mlops-eindopdracht
@@ -34,7 +49,6 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
       
       - name: 'Read yaml files and set output variables'
-        # id: read_compute_name
         id: read-yaml
         run: | 
           echo "COMPUTE_NAME=$(yq ".name" ./environment/compute.yaml)" >> "$GITHUB_OUTPUT"
@@ -52,22 +66,6 @@ jobs:
           echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
           echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
 
-      - name: Create or start compute instance
-        uses: azure/CLI@v1
-        id: azure-create-compute
-        with:
-          azcliversion: 2.53.0
-          inlineScript: |
-            az extension add --name ml -y
-            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            if [[ $(az ml compute list -o tsv | grep ${{ steps.read-yaml.outputs.COMPUTE_NAME }}) ]]; then
-              echo "Compute instance already exists and will be started"
-              az ml compute start -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
-            else
-              echo "Compute instance does not exist and will be created"
-              az ml compute create -f ./environment/compute.yaml
-            fi
-      
       - name: Check and create environments
         uses: azure/CLI@v1
         id: azure-create-environments
@@ -99,6 +97,24 @@ jobs:
                 fi
             fi
 
+
+      - name: Create or start compute instance
+        uses: azure/CLI@v1
+        id: azure-create-compute
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            if [[ $(az ml compute list -o tsv | grep ${{ steps.read-yaml.outputs.COMPUTE_NAME }}) ]]; then
+              echo "Compute instance already exists and will be started"
+              az ml compute start -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
+            else
+              echo "Compute instance does not exist and will be created"
+              az ml compute create -f ./environment/compute.yaml
+            fi
+      
+
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1
         id: azure-pipeline
@@ -107,7 +123,7 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            az ml job create --file ./pipelines/text-sentiment.yaml --set name=emotions-classification-${{ github.sha }}-${{ github.run_id }} --stream
+            az ml job create --file ./pipelines/text-sentiment.yaml --set name=emotions-classification-${{ github.sha }}-${{ github.run_id }} --set inputs.epochs=${{ inputs.epochs }} --set inputs.batchsize=${{ inputs.batch_size }} --set inputs.valsplit=${{ inputs.valsplit }} --set inputs.patience=${{ inputs.patience }} --stream
             echo "Pipeline is done running"
             VERSION=$(az ml model list -n emotions-classification --query '[0].version')
             echo "Latest version of model is $VERSION"

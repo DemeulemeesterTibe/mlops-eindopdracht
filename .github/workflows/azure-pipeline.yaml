@@ -97,6 +97,23 @@ jobs:
                 fi
             fi
 
+      - name: Update prepro.yaml with latest environment version
+        id: update-component
+        run: |
+          COMPONENT_FILE="./components/dataprep/prepro.yaml"
+          LATEST_ENV_NAME=$(az ml environment list -n emotions-classification --query '[0].name' -o tsv)
+          LATEST_ENV_VERSION=$(az ml environment list -n emotions-classification --query '[0].version' -o tsv)
+
+          echo "Updating component.yaml with the latest environment: ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
+
+          # Use a tool like sed to replace the environment field in the component.yaml file
+          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}/" $COMPONENT_FILE
+
+          # Display the updated content for verification
+          cat $COMPONENT_FILE
+
+          # Ensure this step runs after the azure-pipeline job is successful
+
 
       - name: Create or start compute instance
         uses: azure/CLI@v1

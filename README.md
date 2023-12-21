@@ -18,6 +18,9 @@
   - [How to trigger the GitHub Actions Workflow](#how-to-trigger-the-github-actions-workflow)
   - [Environment parameters](#environment-parameters)
   - [Jobs](#jobs)
+    - [Azure Pipeline Step](#azure-pipeline-step)
+    - [Download Model Step](#download-model-step)
+    - [Deploy Model Step](#deploy-model-step)
 - [FastAPI](#fastapi)
 
 ## Some context
@@ -342,3 +345,12 @@ Gain insights into customer sentiment on ad platforms for improved targeting and
 AdSpectra integrates sentiment analysis to tailor ad strategies, optimizing targeting and content for enhanced customer engagement and campaign success.
 
 ## Automation examples
+
+This is a list of all the automation I did in my GitHub Actions Workflow
+- Checks if the Compute Instance exits if it does exist start it other wise create it. It does this by checking the name in [compute.yaml](environment/compute.yaml) (see step `Read yaml files and set output variables` in [Azure Pipeline Step](#azure-pipeline-step)) and setting this as a output variable then in the step `Create or start compute instance` it checks if the compute instance exits and creates or starts it.
+- Checks if the preprocessing environment exits or is up to date. It does this by checking the name and version in [preproEnv.yaml](environment/preproEnv.yaml) (see step `Read yaml files and set output variables` in [Azure Pipeline Step](#azure-pipeline-step)) and setting this as a output variable then in the step `Check and create environments` it checks if it exits or not and if it is up to date or not. It then creates the environment or updates it if needed.
+- Same for [traintestEnv.yaml](environment/traintestEnv.yaml)
+- Same for [trainingEnv.yaml](environment/trainingEnv.yaml)
+- Saved labels from [train.py](components/training/code/train.py) from the labelencoder that is later used in [main.py](inference/main.py) to automate the labels so when the labels change you don't have to change [main.py](inference/main.py)
+- Saved Tokenizer from [train.py](components/training/code/train.py) so the tokens are the same from when the model was trained. The tokenizer is used in [utils.py](inference/utils.py)
+- You can give other parameters in the GitHub Workflow for training parameters so you can choose for how many **epochs** what **batch_size**, **patience** and **validationsplit** (see `Run the azure ml pipeline` in [Azure Pipeline Step](#azure-pipeline-step)).

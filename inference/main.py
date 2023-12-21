@@ -23,7 +23,7 @@ print("Loading model...")
 model = load_model(model_path)
 
 @app.post('/get/sentiment')
-async def uploadImage(text: str):
+async def getSentiment(text: str):
     proccessed_text = preprocess(text)
     predictions = model.predict(proccessed_text)
     classifications = predictions.argmax(axis=1)
@@ -33,6 +33,10 @@ async def uploadImage(text: str):
 @app.get('/healthcheck')
 def healthcheck():
     return {'status': 'Healty'}
+
+@app.get('/')
+def default():
+    return {'Obama is beast'}
 
 if __name__ == '__main__':
     import uvicorn

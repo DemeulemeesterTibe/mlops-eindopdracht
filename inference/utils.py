@@ -14,12 +14,7 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 
 # print current working directory
-print("###################")
-print("current working directory",os.getcwd())
-print("###################")
 tokenizer_path = os.path.join("emotions-classification","INPUT_model_path", "emotions", "emotions-tokenizer.pickle")
-print("token",tokenizer_path)
-print("###################")
 with open(tokenizer_path, 'rb') as handle:
     tokenizer = pickle.load(handle)
 

@@ -7,4 +7,4 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    image: demeulemeestertibe/mlops-animals-api
+    image: demeulemeestertibe/mlops-eindopdracht-2.0 

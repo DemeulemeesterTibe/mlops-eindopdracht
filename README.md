@@ -262,6 +262,8 @@ This step is responsible for deploying the model by building and pushing the Doc
 
 ## FastAPI
 
+![Picture of FastAPI endpoint](images/fast.png)
+
 ### Explanation of FastAPI
 
 #### Code Explanation 

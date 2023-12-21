@@ -64,12 +64,12 @@ jobs:
           echo "TRAIN_TEST_ENV=$(yq ".name" ./environment/traintestEnv.yaml)" >> "$GITHUB_OUTPUT"
           echo "TRAIN_TEST_ENVVERSION=$(yq ".version" ./environment/traintestEnv.yaml)" >> "$GITHUB_OUTPUT"
 
-      - name: 'Test output variables'
-        run: |
-          echo "${{ steps.read-yaml.outputs.COMPUTE_NAME }}"
-          echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
-          echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
-          echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+      # - name: 'Test output variables'
+      #   run: |
+      #     echo "${{ steps.read-yaml.outputs.COMPUTE_NAME }}"
+      #     echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
+      #     echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
+      #     echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
           
       - name: Update the component files with latest environment version
         id: update-component
@@ -89,6 +89,22 @@ jobs:
           echo "Updating training.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
           sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}/" $COMPONENT_FILE_TRAINTEST
           echo "training.yaml updated successfully."
+
+      - name: Create or start compute instance
+        uses: azure/CLI@v1
+        id: azure-create-compute
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+            if [[ $(az ml compute list -o tsv | grep ${{ steps.read-yaml.outputs.COMPUTE_NAME }}) ]]; then
+              echo "Compute instance already exists and will be started"
+              az ml compute start -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
+            else
+              echo "Compute instance does not exist and will be created"
+              az ml compute create -f ./environment/compute.yaml
+            fi
 
       - name: Check and create environments
         uses: azure/CLI@v1
@@ -161,22 +177,6 @@ jobs:
                 else
                   echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} is up to date."
                 fi
-            fi
-
-      - name: Create or start compute instance
-        uses: azure/CLI@v1
-        id: azure-create-compute
-        with:
-          azcliversion: 2.53.0
-          inlineScript: |
-            az extension add --name ml -y
-            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            if [[ $(az ml compute list -o tsv | grep ${{ steps.read-yaml.outputs.COMPUTE_NAME }}) ]]; then
-              echo "Compute instance already exists and will be started"
-              az ml compute start -n ${{ steps.read-yaml.outputs.COMPUTE_NAME }}
-            else
-              echo "Compute instance does not exist and will be created"
-              az ml compute create -f ./environment/compute.yaml
             fi
 
       - name: 'Run the azure ml pipeline'

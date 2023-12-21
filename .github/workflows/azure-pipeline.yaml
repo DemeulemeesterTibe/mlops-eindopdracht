@@ -86,6 +86,7 @@ jobs:
               ENV_VERSION_VAR=${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}
               
             elif [[ $FILE == "train.yaml" ]]; then
+              COMPONENT_FILE="./components/training/$FILE"
               ENV_NAME=${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}
               ENV_VERSION_VAR=${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}
               

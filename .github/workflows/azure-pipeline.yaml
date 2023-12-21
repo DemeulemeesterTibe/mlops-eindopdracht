@@ -70,25 +70,53 @@ jobs:
       #     echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
       #     echo "${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
       #     echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
-          
+         
       - name: Update the component files with latest environment version
         id: update-component
         run: |
-          COMPONENT_FILE_PREPRO="./components/dataprep/prepro.yaml"
-          COMPONENT_FILE_TRAINTEST="./components/dataprep/traintest.yaml"
-          COMPONENT_FILE_TRAIN="./components/training/train.yaml"
+          COMPONENT_FILES=("prepro.yaml" "traintest.yaml" "train.yaml")
 
-          echo "Updating prepro.yaml with the latest environment: ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
+          for FILE in "${COMPONENT_FILES[@]}"; do
+            COMPONENT_FILE="./components/dataprep/$FILE"
+            ENV_NAME=${{ steps.read-yaml.outputs.PRE_PRO_ENV }}
+            ENV_VERSION_VAR=${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}
+            
+            if [[ $FILE == "traintest.yaml" ]]; then
+              ENV_NAME=${{ steps.read-yaml.outputs.TRAINING_ENV }}
+              ENV_VERSION_VAR=${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}
+              
+            elif [[ $FILE == "train.yaml" ]]; then
+              ENV_NAME=${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}
+              ENV_VERSION_VAR=${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}
+              
+            fi
+
+            echo "Updating $FILE with the latest environment: $ENV_NAME:$ENV_VERSION_VAR"
+            
+            # Use sed to replace the environment field in the component.yaml file
+            sed -i "s/^environment: .*/environment: azureml:$ENV_NAME:$ENV_VERSION_VAR/" $COMPONENT_FILE
+            echo "$FILE updated successfully."
+          done
+
+
+      # - name: Update the component files with latest environment version
+      #   id: update-component
+      #   run: |
+      #     COMPONENT_FILE_PREPRO="./components/dataprep/prepro.yaml"
+      #     COMPONENT_FILE_TRAINTEST="./components/dataprep/traintest.yaml"
+      #     COMPONENT_FILE_TRAIN="./components/training/train.yaml"
+
+      #     echo "Updating prepro.yaml with the latest environment: ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}"
           
-          # Use a tool like sed to replace the environment field in the component.yaml file
-          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}/" $COMPONENT_FILE_PREPRO
-          echo "prepro.yaml updated successfully."
-          echo "Updating traintest.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
-          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}/" $COMPONENT_FILE_TRAIN
-          echo "traintest.yaml updated successfully."
-          echo "Updating training.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
-          sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}/" $COMPONENT_FILE_TRAINTEST
-          echo "training.yaml updated successfully."
+      #     # Use a tool like sed to replace the environment field in the component.yaml file
+      #     sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.PRE_PRO_ENV }}:${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}/" $COMPONENT_FILE_PREPRO
+      #     echo "prepro.yaml updated successfully."
+      #     echo "Updating traintest.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}"
+      #     sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAINING_ENV }}:${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}/" $COMPONENT_FILE_TRAIN
+      #     echo "traintest.yaml updated successfully."
+      #     echo "Updating training.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
+      #     sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}/" $COMPONENT_FILE_TRAINTEST
+      #     echo "training.yaml updated successfully."
 
       - name: Create or start compute instance
         uses: azure/CLI@v1

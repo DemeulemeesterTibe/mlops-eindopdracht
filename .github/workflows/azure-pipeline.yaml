@@ -3,6 +3,11 @@ name: MLOPS Azure text sentiment classification pipeline
 on: 
   workflow_dispatch:
     inputs:
+      train_model:
+        description: 'Train model'
+        required: true
+        type: boolean
+        default: true
       download_model:
         description: 'Download model'
         required: true
@@ -37,6 +42,7 @@ env:
 jobs:
   azure-pipeline:
     runs-on: ubuntu-latest
+    if: ${{ inputs.train_model }}
     outputs:
       ai-model: ${{ steps.azure-pipeline.outputs.latest_version }}
     steps:
@@ -229,9 +235,9 @@ jobs:
             az ml model download --name emotions-classification --version $VERSION --download-path ./inference 
       
       - name: Upload api code
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: docker-config
+          name: docker-api
           path: inference
     
   deploy-model:
@@ -257,9 +263,9 @@ jobs:
           password: ${{ secrets.TOKEN }}
     
       - name: Download API code for Docker
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: docker-config
+          name: docker-api
           path: inference
 
       - name: Docker Build and push

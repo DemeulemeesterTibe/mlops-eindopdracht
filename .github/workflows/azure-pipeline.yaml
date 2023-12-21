@@ -42,7 +42,6 @@ env:
 jobs:
   azure-pipeline:
     runs-on: ubuntu-latest
-    if: ${{ inputs.train_model }}
     outputs:
       ai-model: ${{ steps.azure-pipeline.outputs.latest_version }}
     steps:
@@ -90,8 +89,7 @@ jobs:
           echo "Updating training.yaml with the latest environment: ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}"
           sed -i "s/^environment: .*/environment: azureml:${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}:${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}/" $COMPONENT_FILE_TRAINTEST
           echo "training.yaml updated successfully."
-          cat $COMPONENT_FILE_TRAINTEST
-  
+
       - name: Check and create environments
         uses: azure/CLI@v1
         id: azure-create-environments
@@ -183,6 +181,7 @@ jobs:
 
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1
+        if: ${{ inputs.train_model }}
         id: azure-pipeline
         with:
           azcliversion: 2.53.0
@@ -209,6 +208,7 @@ jobs:
             
   download-model:
     runs-on: ubuntu-latest
+    needs: azure-pipeline
     if: ${{ inputs.download_model }}
     steps:
       - name: 'Checkout out repository'
@@ -228,7 +228,6 @@ jobs:
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             VERSION=$(az ml model list -n emotions-classification --query '[0].version' -o tsv)
             echo "Latest version of model is $VERSION"
-            # echo "::set-output name=latest_version::$VERSION"
             echo "latest_version=$VERSION" >> "$GITHUB_OUTPUT"
             az ml model download --name emotions-classification --version $VERSION --download-path ./inference 
       

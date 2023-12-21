@@ -43,7 +43,7 @@ jobs:
   azure-pipeline:
     runs-on: ubuntu-latest
     outputs:
-      ai-model: ${{ steps.azure-pipeline.outputs.latest_version }}
+      ai-model: ${{ steps.latest-version.outputs.latest_version }}
     steps:
       - name: 'Checkout out repository'
         uses: actions/checkout@v4
@@ -159,6 +159,15 @@ jobs:
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             az ml job create --file ./pipelines/text-sentiment.yaml --set name=emotions-classification-${{ github.sha }}-${{ github.run_id }} --set inputs.epochs=${{ inputs.epochs }} --set inputs.batchsize=${{ inputs.batch_size }} --set inputs.valsplit=${{ inputs.valsplit }} --set inputs.patience=${{ inputs.patience }} --stream
             echo "Pipeline is done running"
+
+      - name: 'Set output variable'
+        uses: azure/CLI@v1
+        id: latest-version
+        with:
+          azcliversion: 2.53.0
+          inlineScript: |
+            az extension add --name ml -y
+            az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             VERSION=$(az ml model list -n emotions-classification --query '[0].version')
             echo "Latest version of model is $VERSION"
             echo "latest_version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -195,9 +204,10 @@ jobs:
           inlineScript: |
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-            VERSION=$(az ml model list -n emotions-classification --query '[0].version' -o tsv)
+            echo "Downloading model..."
+            echo "Latest version of model is ${{ needs.azure-pipeline.outputs.ai-model }}"
+            VERSION=${{ needs.azure-pipeline.outputs.ai-model }}
             echo "Latest version of model is $VERSION"
-            echo "latest_version=$VERSION" >> "$GITHUB_OUTPUT"
             az ml model download --name emotions-classification --version $VERSION --download-path ./inference 
       
       - name: Upload api code

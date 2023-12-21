@@ -163,7 +163,13 @@ The component has the following inputs:
 - **valsplit**: The validation split size used for the training
 - **patience**: The patience for the earlystopping
 
-It has a **output_folder** of as output.
+It has a **output_folder** as output with the following things in it:
+- **the Model:** the trained model
+- **The Confusion Matrix:** The confusion matrix on the test set
+- **The Class Report:**  The classification report of the test set
+- **The Tokenizer:** The tokenizer used for the turning text to tokens later used in [utils.py](inference/utils.py)
+- **The labels:** The labels from the label encoder later used in [main.py](inference/main.py)
+- **The loss and accuracy graph:** The loss and accuracy graph of the training
 
 The component uses the environment **azureml:aml-Training-Text:0.1.0** which is a custom environment from the file [trainingEnv.yaml](environment/trainingEnv.yaml).
 
@@ -335,5 +341,4 @@ Gain insights into customer sentiment on ad platforms for improved targeting and
 #### **Conclusion:**
 AdSpectra integrates sentiment analysis to tailor ad strategies, optimizing targeting and content for enhanced customer engagement and campaign success.
 
-
-
+## Automation examples

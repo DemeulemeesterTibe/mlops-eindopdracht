@@ -16,7 +16,7 @@ inputs:
 outputs:
   output_data:
     type: uri_folder
-environment: azureml:aml-Prepro:0.1.1
+environment: azureml:aml-Preproccesing:0.1.0
 code: ./code/prepro.py
 resources:
   instance_count: 1

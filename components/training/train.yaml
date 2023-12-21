@@ -34,7 +34,7 @@ inputs:
 outputs:
   output_folder:
     type: uri_folder
-environment: azureml:aml-Training:0.1.9
+environment: azureml:aml-Training-Text:0.1.0
 code: ./code
 resources:
   instance_count: 1

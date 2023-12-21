@@ -18,7 +18,7 @@ outputs:
     type: uri_folder
   testing_data_output:
     type: uri_folder
-environment: azureml:aml-DataSplit:0.1.0
+environment: azureml:aml-DataSplit-Text:0.1.0
 code: ./code/traintest.py
 resources:
   instance_count: 1

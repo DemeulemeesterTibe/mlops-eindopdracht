@@ -205,7 +205,6 @@ jobs:
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
             echo "Downloading model..."
-            echo "Latest version of model is ${{ needs.azure-pipeline.outputs.ai-model }}"
             VERSION=${{ needs.azure-pipeline.outputs.ai-model }}
             echo "Latest version of model is $VERSION"
             az ml model download --name emotions-classification --version $VERSION --download-path ./inference 

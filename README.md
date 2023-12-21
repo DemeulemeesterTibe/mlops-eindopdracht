@@ -8,6 +8,17 @@
   - [Preprocessing steps](#preprocessing-steps)
 - [Setting up](#setting-up)
   - [GitHub Secrets](#github-secrets)
+  - [Azure Machine Learning](#azure-machine-learning)
+- [Azure Pipeline](#azure-pipeline)
+  - [Data preparation Text preprocessing Component](#data-preparation-text-preprocessing-component)
+  - [Splitting data into train and test Component](#splitting-data-into-train-and-test-component)
+  - [Training an AI model for text sentiment Component](#training-an-ai-model-for-text-sentiment-component)
+  - [Register model Component](#register-model-component)
+- [GitHub Actions](#github-actions)
+  - [How to trigger the GitHub Actions Workflow](#how-to-trigger-the-github-actions-workflow)
+  - [Environment parameters](#environment-parameters)
+  - [Jobs](#jobs)
+- [FastAPI](#fastapi)
 
 ## Some context
 
@@ -108,9 +119,9 @@ This component is responsible for the data preprocessing. The preprocessing cons
 
 The component has some inputs namely:
 
-- data_folder: the name of the data folder were the dataset is present
-- language: What language the data is in 
-- data_name: The name of the dataset
+- **data_folder**: the name of the data folder were the dataset is present
+- **language**: What language the data is in 
+- **data_name**: The name of the dataset
 
 It also has a output which is a **uri_folder** were the preprocessed data will be present.
 
@@ -124,33 +135,33 @@ This component creates from a csv file 2 csv files 1 for training and 1 for test
 
 The component has the following inputs:
 
-- data_folder: the name of the data folder were the preprocessed dataset is present
-- data_name: The name of the dataset
-- train_test_split: The amount of procent that should be used for the test size
+- **data_folder**: the name of the data folder were the preprocessed dataset is present
+- **data_name**: The name of the dataset
+- **train_test_split**: The amount of procent that should be used for the test size
 
 It also has 2 outputs:
-- training_data_output: A data asset of the training data
-- testing_data_output: A data asset of the testing data
+- **training_data_output**: A data asset of the training data
+- **testing_data_output**: A data asset of the testing data
 
 The component uses the environment **azureml:aml-DataSplit-Text:0.1.0** which is a custom environment from the file [traintestEnv.yaml](environment/traintestEnv.yaml).
 
 The code of the component you can find here [traintest.py](components/dataprep/code/traintest.py)
 
-### Training an AI model for text sentiment
+### Training an AI model for text sentiment Component
 
 This component outputs a folder with the model and some evaluation metrics from some hyperparameters given to it and the training / testing data.
 
 The component has the following inputs:
 
-- data_folder: the name of the data folder were the preprocessed dataset is present
-- data_name: The name of the dataset
-- training_data: The training data data asset
-- testing_data: The testing data data asset
-- glove: The name of the glove file used for the word vectors embeddings
-- epochs: How many times it should iterate over the training data 
-- batchsize: The used batchsize for training
-- valsplit: The validation split size used for the training
-- patience: The patience for the earlystopping
+- **data_folder**: the name of the data folder were the preprocessed dataset is present
+- **data_name**: The name of the dataset
+- **training_data**: The training data data asset
+- **testing_data**: The testing data data asset
+- **glove**: The name of the glove file used for the word vectors embeddings
+- **epochs**: How many times it should iterate over the training data 
+- **batchsize**: The used batchsize for training
+- **valsplit**: The validation split size used for the training
+- **patience**: The patience for the earlystopping
 
 It has a **output_folder** of as output.
 
@@ -158,18 +169,20 @@ The component uses the environment **azureml:aml-Training-Text:0.1.0** which is 
 
 The component uses 2 python files [train.py](components/training/code/utils.py) and [utils.py](components/training/code/utils.py)
 
-### Register model
+### Register model Component
 
 This is a premade component from Microsoft to register your model on Azure
 
 The component has the following inputs:
-- model_name: The name you want to give to your model
-- model_type: the type of model (in my case is this **custom_model**)
-- model_path: the path of the folder were your model is in
+- **model_name**: The name you want to give to your model
+- **model_type**: the type of model (in my case is this **custom_model**)
+- **model_path**: the path of the folder were your model is in
 
 ## GitHub Actions
 
 The GitHub Actions file: [azure-pipeline.yaml](.github/workflows/azure-pipeline.yaml)
+
+![Picture of the environment variables](images/githubActions.png)
 
 ### How to trigger the GitHub Actions Workflow
 
@@ -187,10 +200,53 @@ The workflow has three environment parameters, and you should replace these with
 
 ### Jobs 
 
-#### Azure Pipeline
+#### Azure Pipeline Step
 
-#### Download Model
+**outputs:** Defines the output variable (`ai-model`) that can be used in subsequent steps.
 
-#### Deploy Model
+**Steps:**
+- **Checkout out repository:** Checks out the GitHub repository.
+- **Login via Azure CLI:** Authenticates to Azure using the provided **AZURE_CREDENTIALS** in the GitHub repository secrets (See [GitHub Secrets](#github-secrets)).
+- **Read yaml files and set output variables:** Reads YAML files to set output variables for Compute name and environment names / versions.
+- **Update the component files with the latest environment version:** Updates component files with the latest environment versions.
+- **Create or start compute instance:** Creates or starts an Azure ML compute instance.
+- **Check and create environments:** Checks for existing environments and creates or updates them.
+- **Run the azure ml pipeline:** Runs an Azure ML pipeline if the condition to train the model is met.
+- **Set output variable:** Sets the output variable of the step.
+- **Stop compute instance:** Stops the Azure ML compute instance.
+
+This workflow integrates with Azure Machine Learning and performs tasks related to environment management, model training, and compute instance handling.
+
+
+#### Download Model Step
+
+This step depends on the completion of the [Azure Pipeline Step](#azure-pipeline-step) step. It is conditionally executed based on the value of `inputs.download_model`. Below is an explanation of the key components:
+
+**needs:** Indicates that this step depends on the completion of the [Azure Pipeline Step](#azure-pipeline-step).
+**if:** Specifies a condition based on the value of `inputs.download_model` to determine whether the step should be executed.
+
+**Steps:**
+- **Checkout out repository:** Checks out the GitHub repository.
+- **Az CLI login:** Authenticates to Azure using the provided credentials.
+- **Download model:** Uses the Azure CLI to download the latest version of the model. It uses the `ai-model` output variable from the [Azure Pipeline Step](#azure-pipeline-step) and downloads the correct model to the `./inference` directory.
+- **Upload api code:** Uploads the contents of the `./inference` directory as a Docker API artifact.
+
+This step is responsible for downloading the latest version of the model from Azure Machine Learning and uploading the API code for Dockerization.
+
+#### Deploy Model Step
+
+This step depends on the completion of the [Download Model Step](#download-model-step) step and is conditionally executed based on the success of the [Download Model Step](#download-model-step). Below is an explanation of the key components:
+
+**needs:** Indicates that this step depends on the completion of the [Download Model Step](#download-model-step).
+**if:** Specifies a condition based on the success result of the [Download Model Step](#download-model-step) to determine whether the step should be executed.
+
+**Steps:**
+- **"Docker metadata":** Uses the `docker/metadata-action` to gather metadata about the Docker image, including tags based on the repository and event.
+- **"Login to GHCR":** Logs in to the GitHub Container Registry (GHCR) using the Docker login action with the variables `username` (Is your GitHub repository name) and `TOKEN` (See [GitHub Secrets](#github-secrets)) .
+- **"Download API code for Docker":** Downloads the API code for Docker from the `docker-api` artifact.
+- **"Docker Build and push":** Uses the `docker/build-push-action` to build and push the Docker image. The image tags are obtained from the `docker-metadata` step.
+
+This step is responsible for deploying the model by building and pushing the Docker image to the GitHub Container Registry (GHCR) based on the downloaded API code.
+
 
 ## FastAPI

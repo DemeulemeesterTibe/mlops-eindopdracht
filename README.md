@@ -211,7 +211,7 @@ The workflow has three environment parameters, and you should replace these with
 - **Update the component files with the latest environment version:** Updates component files with the latest environment versions.
 - **Create or start compute instance:** Creates or starts an Azure ML compute instance.
 - **Check and create environments:** Checks for existing environments and creates or updates them.
-- **Run the azure ml pipeline:** Runs an Azure ML pipeline if the condition to train the model is met.
+- **Run the azure ml pipeline:** Runs an Azure ML pipeline if the condition to train the model is met also sets the inputs of the [text-sentiment.yaml](pipelines/text-sentiment.yaml) the same as some of the inputs of the Github Actions Workflow.
 - **Set output variable:** Sets the output variable of the step.
 - **Stop compute instance:** Stops the Azure ML compute instance.
 
@@ -248,5 +248,92 @@ This step depends on the completion of the [Download Model Step](#download-model
 
 This step is responsible for deploying the model by building and pushing the Docker image to the GitHub Container Registry (GHCR) based on the downloaded API code.
 
-
 ## FastAPI
+
+### Explanation of FastAPI
+
+#### Code Explanation 
+
+**[main.py](inference/main.py)**
+
+- **FastAPI Setup:**
+  - Creates a FastAPI instance named `app`.
+  - Adds CORS middleware to handle cross-origin requests.
+
+- **Model Loading:**
+  - Defines paths for the model folder, sentiments labels, and the pre-trained model.
+  - Loads the sentiment labels from the label encoder used and saved from the [train.py](components/training/code/train.py) script (see [Training an AI model for text sentiment Component](#training-an-ai-model-for-text-sentiment-component)).
+  - Loads the pre-trained emotion classification model using TensorFlow Keras.
+
+- **Endpoints:**
+  - **/get/sentiment**: Accepts a text input, preprocesses it using [utils.py](inference/utils.py), predicts the sentiment using the loaded model, and returns the predicted sentiment.
+  - **/healthcheck**: A simple health check endpoint.
+  - **/**: Default endpoint returning a simple message.
+
+- **Server Launch:**
+  - If the script is executed directly (`__name__ == '__main__'`), it runs the FastAPI application using Uvicorn.
+
+**[utils.py](inference/utils.py)**
+
+- **NLP Preprocessing Functions:**
+  - **lemmatization**: Lemmatizes words in a given text.
+  - **remove_stop_words**: Removes common English stop words from text.
+  - **removing_numbers**: Removes numerical digits from text.
+  - **lower_case**: Converts text to lowercase.
+  - **removing_punctuations**: Removes punctuation and extra whitespace from text.
+  - **removing_urls**: Removes URLs from text.
+  - **preprocess**: Combines the preprocessing functions to prepare text for model input.
+
+- **Tokenizer Loading:**
+  - Loads a pre-trained tokenizer from a pickle file that comes from the [train.py](components/training/code/train.py) script (see [Training an AI model for text sentiment Component](#training-an-ai-model-for-text-sentiment-component)).
+
+This setup allows the FastAPI application to receive text inputs, preprocess them using NLP functions from [utils.py](inference/utils.py), and predict the sentiment using the loaded model.
+
+#### Docker Explanation
+
+**[Dockerfile](inference/Dockerfile)**
+
+- **Image Base:** Uses the official Python 3.10 image as the base image.
+- **Working Directory:** Sets the working directory inside the container to `/app`.
+- **Copy Requirements:** Copies the `requirements.txt` file to the working directory.
+- **Install Dependencies:** Installs Python dependencies specified in `requirements.txt`.
+- **Copy Application Files:** Copies all files from the local directory to the working directory in the container.
+- **Command:** Specifies the default command to run when the container starts, running the `main.py` file with Python.
+
+**[docker-compose.yml](inference/docker-compose.yml)**
+
+- **Compose Version:** Uses version 3.9 of Docker Compose.
+- **Service Configuration:**
+  - **api:**
+    - **Build Configuration:** Specifies the build context as the current directory and uses the `Dockerfile`.
+    - **Ports Mapping:** Maps port 8000 on the host to port 8000 on the container.
+    - **Image Name:** Sets the image name to `demeulemeestertibe/mlops-eindopdracht-2.0`.
+
+
+### Integration Fictional Company
+
+#### AdSpectra Innovations: Sentiment Analysis Integration
+
+**Company Overview:**
+AdSpectra Innovations, an advertising company, integrates sentiment analysis to optimize ad campaign performance and enhance customer satisfaction.
+
+**Integration Scenario: Comment Sentiment Analysis**
+
+**Objective:**
+Gain insights into customer sentiment on ad platforms for improved targeting and ad content.
+
+**Integration Steps:**
+
+1. **Comment Sentiment Analysis:**
+   - **Use Case:** Understand sentiment in ad comments.
+   - **Implementation:** Analyze comments using AI sentiment analysis to gauge customer satisfaction.
+
+2. **Customer Feedback Loop:**
+   - **Use Case:** Facilitate continuous improvement based on sentiment feedback.
+   - **Implementation:** Integrate sentiment insights into the ad creation process to align with customer preferences.
+
+#### **Conclusion:**
+AdSpectra integrates sentiment analysis to tailor ad strategies, optimizing targeting and content for enhanced customer engagement and campaign success.
+
+
+

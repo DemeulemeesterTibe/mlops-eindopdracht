@@ -214,9 +214,9 @@ jobs:
             }
 
             # Call the function for each environment
-            check_create_environment "PRE_PRO_ENV" "PRE_PRO_ENV_VERSION" "./environment/preproEnv.yaml"
-            check_create_environment "TRAINING_ENV" "TRAINING_ENV_VERSION" "./environment/trainingEnv.yaml"
-            check_create_environment "TRAIN_TEST_ENV" "TRAIN_TEST_ENVVERSION" "./environment/traintestEnv.yaml"
+            check_create_environment "${{ steps.read-yaml.outputs.PRE_PRO_ENV }}" "${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }}" "./environment/preproEnv.yaml"
+            check_create_environment "${{ steps.read-yaml.outputs.TRAINING_ENV }}" "${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }}" "./environment/trainingEnv.yaml"
+            check_create_environment "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}" "${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }}" "./environment/traintestEnv.yaml"
 
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1

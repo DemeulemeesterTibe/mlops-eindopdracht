@@ -106,6 +106,78 @@ jobs:
               az ml compute create -f ./environment/compute.yaml
             fi
 
+      # - name: Check and create environments
+      #   uses: azure/CLI@v1
+      #   id: azure-create-environments
+      #   with:
+      #     azcliversion: 2.53.0
+      #     inlineScript: |
+      #       echo "Checking for existing environments..."
+      #       az extension add --name ml -y
+      #       az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
+    
+      #       # Check if PRE_PRO_ENV exists
+      #       if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}) ]]; then
+      #           # PRE_PRO_ENV does not exist, creating it
+      #           echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} does not exist, creating it..."
+    
+      #           az ml environment create -f ./environment/preproEnv.yaml
+    
+      #           echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} created successfully."
+      #       else
+      #           # PRE_PRO_ENV exists, check version
+      #           echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} exists, checking version..."
+    
+      #           if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
+      #             echo "Environment version is lower than required version, updating environment..."
+      #             az ml environment create -f ./environment/preproEnv.yaml
+      #             echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} updated successfully."
+      #           else
+      #             echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} is up to date."
+      #           fi
+      #       fi
+    
+      #       # Check if TRAINING_ENV exists
+      #       if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAINING_ENV }}) ]]; then
+      #           # PRE_PRO_ENV does not exist, creating it
+      #           echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} does not exist, creating it..."
+    
+      #           az ml environment create -f ./environment/trainingEnv.yaml
+    
+      #           echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} created successfully."
+      #       else
+      #           # PRE_PRO_ENV exists, check version
+      #           echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} exists, checking version..."
+    
+      #           if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAINING_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }} ]]; then
+      #             echo "Environment version is lower than required version, updating environment..."
+      #             az ml environment create -f ./environment/trainingEnv.yaml
+      #             echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} updated successfully."
+      #           else
+      #             echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} is up to date."
+      #           fi
+      #       fi
+    
+      #       # Check if TRAIN_TEST_ENV exists
+      #       if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}) ]]; then
+      #           # PRE_PRO_ENV does not exist, creating it
+      #           echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} does not exist, creating it..."
+    
+      #           az ml environment create -f ./environment/traintestEnv.yaml
+    
+      #           echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} created successfully."
+      #       else
+      #           # PRE_PRO_ENV exists, check version
+      #           echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} exists, checking version..."
+    
+      #           if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }} ]]; then
+      #             echo "Environment version is lower than required version, updating environment..."
+      #             az ml environment create -f ./environment/traintestEnv.yaml
+      #             echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} updated successfully."
+      #           else
+      #             echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} is up to date."
+      #           fi
+      #       fi
       - name: Check and create environments
         uses: azure/CLI@v1
         id: azure-create-environments
@@ -115,69 +187,36 @@ jobs:
             echo "Checking for existing environments..."
             az extension add --name ml -y
             az configure --defaults group=$GROUP workspace=$WORKSPACE location=$LOCATION
-    
-            # Check if PRE_PRO_ENV exists
-            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.PRE_PRO_ENV }}) ]]; then
-                # PRE_PRO_ENV does not exist, creating it
-                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} does not exist, creating it..."
-    
-                az ml environment create -f ./environment/preproEnv.yaml
-    
-                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} created successfully."
-            else
-                # PRE_PRO_ENV exists, check version
-                echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} exists, checking version..."
-    
-                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.PRE_PRO_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.PRE_PRO_ENV_VERSION }} ]]; then
-                  echo "Environment version is lower than required version, updating environment..."
-                  az ml environment create -f ./environment/preproEnv.yaml
-                  echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} updated successfully."
+
+            # Define a function to check and create/update environments
+            check_create_environment() {
+                ENV_NAME=$1
+                ENV_VERSION_VAR=$2
+                ENV_FILE=$3
+                
+                echo "Checking for $ENV_NAME..."
+                
+                if ! [[ $(az ml environment list -o tsv | grep $ENV_NAME) ]]; then
+                    echo "$ENV_NAME does not exist, creating it..."
+                    az ml environment create -f $ENV_FILE
+                    echo "$ENV_NAME created successfully."
                 else
-                  echo "${{ steps.read-yaml.outputs.PRE_PRO_ENV }} is up to date."
+                    echo "$ENV_NAME exists, checking version..."
+                    
+                    if [[ $(az ml environment list -n $ENV_NAME -o tsv --query "[0].version") != $ENV_VERSION_VAR ]]; then
+                        echo "Environment version is lower than required version, updating environment..."
+                        az ml environment create -f $ENV_FILE
+                        echo "$ENV_NAME updated successfully."
+                    else
+                        echo "$ENV_NAME is up to date."
+                    fi
                 fi
-            fi
-    
-            # Check if TRAINING_ENV exists
-            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAINING_ENV }}) ]]; then
-                # PRE_PRO_ENV does not exist, creating it
-                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} does not exist, creating it..."
-    
-                az ml environment create -f ./environment/trainingEnv.yaml
-    
-                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} created successfully."
-            else
-                # PRE_PRO_ENV exists, check version
-                echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} exists, checking version..."
-    
-                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAINING_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAINING_ENV_VERSION }} ]]; then
-                  echo "Environment version is lower than required version, updating environment..."
-                  az ml environment create -f ./environment/trainingEnv.yaml
-                  echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} updated successfully."
-                else
-                  echo "${{ steps.read-yaml.outputs.TRAINING_ENV }} is up to date."
-                fi
-            fi
-    
-            # Check if TRAIN_TEST_ENV exists
-            if ! [[ $(az ml environment list -o tsv | grep ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }}) ]]; then
-                # PRE_PRO_ENV does not exist, creating it
-                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} does not exist, creating it..."
-    
-                az ml environment create -f ./environment/traintestEnv.yaml
-    
-                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} created successfully."
-            else
-                # PRE_PRO_ENV exists, check version
-                echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} exists, checking version..."
-    
-                if [[ $(az ml environment list -n ${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} -o tsv --query "[0].version") != ${{ steps.read-yaml.outputs.TRAIN_TEST_ENVVERSION }} ]]; then
-                  echo "Environment version is lower than required version, updating environment..."
-                  az ml environment create -f ./environment/traintestEnv.yaml
-                  echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} updated successfully."
-                else
-                  echo "${{ steps.read-yaml.outputs.TRAIN_TEST_ENV }} is up to date."
-                fi
-            fi
+            }
+
+            # Call the function for each environment
+            check_create_environment "PRE_PRO_ENV" "PRE_PRO_ENV_VERSION" "./environment/preproEnv.yaml"
+            check_create_environment "TRAINING_ENV" "TRAINING_ENV_VERSION" "./environment/trainingEnv.yaml"
+            check_create_environment "TRAIN_TEST_ENV" "TRAIN_TEST_ENVVERSION" "./environment/traintestEnv.yaml"
 
       - name: 'Run the azure ml pipeline'
         uses: azure/CLI@v1

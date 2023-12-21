@@ -22,6 +22,9 @@
     - [Download Model Step](#download-model-step)
     - [Deploy Model Step](#deploy-model-step)
 - [FastAPI](#fastapi)
+  - [Explanation of FastAPI](#explanation-of-fastapi)
+  - [Integration Fictional Company](#integration-fictional-company)
+- [Automation examples](#automation-examples)
 
 ## Some context
 

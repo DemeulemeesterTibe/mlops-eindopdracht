@@ -209,8 +209,6 @@ jobs:
             
   download-model:
     runs-on: ubuntu-latest
-    needs: azure-pipeline
-    # if: (${{ needs.azure-pipeline.result == 'success' }} || ${{ needs.azure-pipeline.result == 'skipped' }}) && ${{ inputs.download_model }}
     if: ${{ inputs.download_model }}
     steps:
       - name: 'Checkout out repository'

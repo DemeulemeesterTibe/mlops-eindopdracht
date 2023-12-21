@@ -87,6 +87,9 @@ Now choose a Name I picked **DataFolder** as my name and use type **Folder (uri_
 Then choose **From local files** and click next untill you can upload your folder with the dataset file and glove file.
 
 ## Azure Pipeline
+
+The pipeline file: [text-sentiment.yaml](pipelines/text-sentiment.yaml)
+
 ![Picture of the pipeline in Azure](images/pipeline.png)
 
 ### Data preparation, Text preprocessing Component
@@ -166,3 +169,28 @@ The component has the following inputs:
 
 ## GitHub Actions
 
+The GitHub Actions file: [azure-pipeline.yaml](.github/workflows/azure-pipeline.yaml)
+
+### How to trigger the GitHub Actions Workflow
+
+You can trigger the workflow on github under the section **Actions** then clicking on the workflow and clicking **Run workflow** and giving your wanted parameters. 
+
+### Environment parameters 
+
+The workflow has three environment parameters, and you should replace these with your corresponding values in your Azure Machine Learning Studio
+
+- GROUP: is the **Resource Group** in the image
+- WORKSPACE: is the **Current Workspace** in the image
+- LOCATION: is the **Location** in the image 
+
+![Picture of the environment variables](images/environmentParameters.png)
+
+### Jobs 
+
+#### Azure Pipeline
+
+#### Download Model
+
+#### Deploy Model
+
+## FastAPI

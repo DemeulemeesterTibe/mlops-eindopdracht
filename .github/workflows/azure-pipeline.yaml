@@ -238,7 +238,7 @@ jobs:
           password: ${{ secrets.TOKEN }}
     
       - name: Download API code for Docker
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@4.1.7
         with:
           name: docker-api
           path: inference
